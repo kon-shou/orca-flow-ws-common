@@ -46,7 +46,7 @@ export function createTodo(input, { id, now = new Date() } = {}) {
 /** 完了にした写しを返す（元は変えない） */
 export function completeTodo(todo) {
   const done = { ...todo, done: true };
-  if (Array.isArray(todo.tags)) {
+  if (Array.isArray(todo?.tags)) {
     done.tags = [...todo.tags];
   }
   return done;
@@ -115,9 +115,12 @@ export function parseTagInput(text) {
 
 /** タグを全部入れ替えた写しを返す（元は変えない） */
 export function setTodoTags(todo, tags) {
+  if (tags === undefined || tags === null) {
+    throwIfProblems(["タグは文字の並びで渡してください"]);
+  }
   throwIfProblems(validateTags(tags));
   const { tags: _old, ...rest } = todo;
-  const normalized = normalizeTags(tags ?? []);
+  const normalized = normalizeTags(tags);
   if (normalized.length > 0) {
     rest.tags = normalized;
   }

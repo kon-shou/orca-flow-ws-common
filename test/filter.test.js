@@ -51,6 +51,9 @@ test("matchesFilter", () => {
   assert.equal(matchesFilter(b, f({ status: "open" })), false);
   assert.equal(matchesFilter(b, f({ status: "done" })), true);
   assert.equal(matchesFilter(a, f({ status: "done" })), false);
+  const d = { title: "x" };
+  assert.equal(matchesFilter(d, f({ status: "open" })), true);
+  assert.equal(matchesFilter(d, f({ status: "done" })), false);
   assert.equal(matchesFilter(a, f({ tag: "home" })), true);
   assert.equal(matchesFilter(a, f({ tag: "work" })), false);
   assert.equal(matchesFilter(c, f({ tag: "home" })), false);

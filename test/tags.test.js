@@ -16,6 +16,7 @@ test("整え", () => {
   assert.equal(normalizeTag("　 AbC　"), "abc");
   assert.equal(normalizeTag("ＡＢ"), "ＡＢ");
   assert.deepEqual(normalizeTags(["Work", "work", " WORK ", "x"]), ["work", "x"]);
+  assert.deepEqual(normalizeTags(["A", "b", "a"]), ["a", "b"]);
 });
 
 test("validateTags の4つの理由が順に1つずつ", () => {
@@ -28,8 +29,24 @@ test("validateTags の4つの理由が順に1つずつ", () => {
   ]);
 });
 
+test("validateTags の理由は種類ごとに1つ", () => {
+  const input = ["", "a".repeat(21), "b".repeat(21), "a,b", "c,d", "e", "f"];
+  assert.deepEqual(validateTags(input), [
+    "タグが空です",
+    "タグは20文字までです",
+    "タグに「,」は使えません",
+    "タグは5個までです",
+  ]);
+});
+
+test("validateTags は空白だけのタグを空とみなす", () => {
+  assert.deepEqual(validateTags(["  "]), ["タグが空です"]);
+  assert.deepEqual(validateTags(["　"]), ["タグが空です"]);
+});
+
 test("validateTags の通る入力", () => {
   assert.deepEqual(validateTags(["a".repeat(20)]), []);
+  assert.deepEqual(validateTags(["a", "A", "b", "c", "d", "e"]), []);
   assert.deepEqual(validateTags(["a", "A", "b", "c", "d", "e", "E"]), []);
   assert.deepEqual(validateTags(["a", "b", "c", "d", "e", "E", "f"]), ["タグは5個までです"]);
   assert.deepEqual(validateTags(undefined), []);
@@ -73,12 +90,20 @@ test("setTodoTags", () => {
   const todo = { id: 1, title: "t", done: false, tags: ["a"] };
   const input = ["B", "b", "c"];
   const next = setTodoTags(todo, input);
-  assert.deepEqual(next.tags, ["b", "c"]);
+  assert.deepEqual(next, { id: 1, title: "t", done: false, tags: ["b", "c"] });
+  assert.notEqual(next, todo);
   assert.notEqual(next.tags, input);
   assert.deepEqual(todo.tags, ["a"]);
-  assert.equal("tags" in setTodoTags(todo, []), false);
-  assert.equal("tags" in setTodoTags(todo, null), false);
-  assert.deepEqual(todo.tags, ["a"]);
+  const empty = setTodoTags(todo, []);
+  assert.deepEqual(empty, { id: 1, title: "t", done: false });
+  assert.notEqual(empty, todo);
+  for (const bad of [null, undefined]) {
+    assert.throws(() => setTodoTags(todo, bad), (e) => {
+      assert.deepEqual(e.problems, [TYPE]);
+      return true;
+    });
+  }
+  assert.deepEqual(todo, { id: 1, title: "t", done: false, tags: ["a"] });
   assert.throws(() => setTodoTags(todo, [""]), (e) => {
     assert.deepEqual(e.problems, ["タグが空です"]);
     return true;
@@ -91,4 +116,6 @@ test("completeTodo はタグを受け継ぐ", () => {
   assert.deepEqual(done.tags, ["a"]);
   assert.notEqual(done.tags, todo.tags);
   assert.equal("tags" in completeTodo({ id: 2, title: "x", done: false }), false);
+  assert.deepEqual(completeTodo(null), { done: true });
+  assert.deepEqual(completeTodo(undefined), { done: true });
 });
