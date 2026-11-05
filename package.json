@@ -1,0 +1,12 @@
+{
+  "name": "todo-core",
+  "version": "0.1.0",
+  "description": "Todo の項目の形と確かめ（依存なし）",
+  "type": "module",
+  "main": "index.js",
+  "exports": "./index.js",
+  "scripts": {
+    "test": "node --test"
+  },
+  "license": "UNLICENSED"
+}
