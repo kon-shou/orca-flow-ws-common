@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(orca *)",
+      "Bash(orca-flow *)"
+    ],
+    "ask": [
+      "Bash(orca-flow send *)",
+      "Bash(orca-flow merge *)"
+    ]
+  }
+}
