@@ -2,9 +2,11 @@
 
 export const MAX_TITLE_LENGTH = 100;
 
+const DATE_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
+
 /** YYYY-MM-DD の形で、実在する日付なら true */
 export function isIsoDate(value) {
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+  if (typeof value !== "string" || !DATE_SHAPE.test(value)) {
     return false;
   }
   const date = new Date(`${value}T00:00:00Z`);
@@ -23,8 +25,6 @@ export function validateTitle(title) {
   }
   return problems;
 }
-
-const DATE_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** now を Asia/Tokyo で見た日付を YYYY-MM-DD で返す */
 export function todayInJapan(now = new Date()) {

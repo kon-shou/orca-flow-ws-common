@@ -77,5 +77,8 @@ test("createTodo は題、期限の順に理由を並べる", () => {
 test("createTodo は日本時間の今日の期限を通す", () => {
   const now = new Date("2026-11-04T15:30:00Z");
   assert.equal(createTodo({ title: "a", dueDate: TODAY }, { id: 1, now }).dueDate, TODAY);
-  assert.throws(() => createTodo({ title: "a", dueDate: "2026-11-04" }, { id: 1, now }));
+  assert.throws(
+    () => createTodo({ title: "a", dueDate: "2026-11-04" }, { id: 1, now }),
+    (e) => e.problems.includes(PAST),
+  );
 });
