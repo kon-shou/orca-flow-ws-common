@@ -182,6 +182,57 @@ export function setTodoTags(todo, tags) {
   return rest;
 }
 
+/** 素の絞り込みの条件を読む。{ filter, problems } を返す */
+export function parseFilter(raw) {
+  const { status, tag, text } = raw ?? {};
+  for (const value of [status, tag, text]) {
+    if (value !== undefined && value !== null && typeof value !== "string") {
+      return { filter: null, problems: ["絞り込みの条件は文字で渡してください"] };
+    }
+  }
+  const problems = [];
+  const statusValue = status === undefined || status === null || status === "" ? "all" : status;
+  if (!["open", "done", "all"].includes(statusValue)) {
+    problems.push("状態は open・done・all のどれかです");
+  }
+  const tagValue = tag === undefined || tag === null ? "" : normalizeTag(tag);
+  if (tagValue.length > MAX_TAG_LENGTH) {
+    problems.push(`タグは${MAX_TAG_LENGTH}文字までです`);
+  }
+  if (tagValue.includes(",")) {
+    problems.push("タグに「,」は使えません");
+  }
+  if (problems.length > 0) {
+    return { filter: null, problems };
+  }
+  const textValue = text === undefined || text === null ? "" : text.trim();
+  return {
+    filter: {
+      status: statusValue,
+      tag: tagValue === "" ? null : tagValue,
+      text: textValue === "" ? null : textValue,
+    },
+    problems: [],
+  };
+}
+
+/** 項目が条件をすべて満たせば true */
+export function matchesFilter(todo, filter) {
+  if (filter.status === "open" && todo.done === true) {
+    return false;
+  }
+  if (filter.status === "done" && todo.done !== true) {
+    return false;
+  }
+  if (filter.tag != null && !(Array.isArray(todo.tags) && todo.tags.includes(filter.tag))) {
+    return false;
+  }
+  if (filter.text != null && !lowerAscii(String(todo.title)).includes(lowerAscii(filter.text))) {
+    return false;
+  }
+  return true;
+}
+
 // ---- 手順 ----
 
 const STEPS_TYPE_PROBLEM = "手順は題と済んだかを持つ物の並びで渡してください";
@@ -197,7 +248,7 @@ export function validateSteps(steps) {
   }
   if (
     !Array.isArray(steps) ||
-    steps.some((step) => !isPlainObject(step) || typeof step.title !== "string")
+    Array.from(steps).some((step) => !isPlainObject(step) || typeof step.title !== "string")
   ) {
     return [STEPS_TYPE_PROBLEM];
   }
@@ -260,55 +311,4 @@ export function stepProgress(todo) {
 export function hasRemainingSteps(todo) {
   const steps = Array.isArray(todo?.steps) ? todo.steps : [];
   return steps.some((step) => step?.done !== true);
-}
-
-/** 素の絞り込みの条件を読む。{ filter, problems } を返す */
-export function parseFilter(raw) {
-  const { status, tag, text } = raw ?? {};
-  for (const value of [status, tag, text]) {
-    if (value !== undefined && value !== null && typeof value !== "string") {
-      return { filter: null, problems: ["絞り込みの条件は文字で渡してください"] };
-    }
-  }
-  const problems = [];
-  const statusValue = status === undefined || status === null || status === "" ? "all" : status;
-  if (!["open", "done", "all"].includes(statusValue)) {
-    problems.push("状態は open・done・all のどれかです");
-  }
-  const tagValue = tag === undefined || tag === null ? "" : normalizeTag(tag);
-  if (tagValue.length > MAX_TAG_LENGTH) {
-    problems.push(`タグは${MAX_TAG_LENGTH}文字までです`);
-  }
-  if (tagValue.includes(",")) {
-    problems.push("タグに「,」は使えません");
-  }
-  if (problems.length > 0) {
-    return { filter: null, problems };
-  }
-  const textValue = text === undefined || text === null ? "" : text.trim();
-  return {
-    filter: {
-      status: statusValue,
-      tag: tagValue === "" ? null : tagValue,
-      text: textValue === "" ? null : textValue,
-    },
-    problems: [],
-  };
-}
-
-/** 項目が条件をすべて満たせば true */
-export function matchesFilter(todo, filter) {
-  if (filter.status === "open" && todo.done === true) {
-    return false;
-  }
-  if (filter.status === "done" && todo.done !== true) {
-    return false;
-  }
-  if (filter.tag != null && !(Array.isArray(todo.tags) && todo.tags.includes(filter.tag))) {
-    return false;
-  }
-  if (filter.text != null && !lowerAscii(String(todo.title)).includes(lowerAscii(filter.text))) {
-    return false;
-  }
-  return true;
 }

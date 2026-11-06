@@ -47,6 +47,8 @@ test("validateSteps の型の理由", () => {
     [{ title: null }],
     [{ title: "a" }, { done: true }],
     [{ title: "" }, null],
+    new Array(1),
+    [, { title: "a" }], // 穴あきの並び
   ];
   for (const bad of bads) {
     assert.deepEqual(validateSteps(bad), [TYPE]);
