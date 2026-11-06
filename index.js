@@ -3,6 +3,8 @@
 export const MAX_TITLE_LENGTH = 100;
 export const MAX_TAGS = 5;
 export const MAX_TAG_LENGTH = 20;
+export const MAX_STEPS = 20;
+export const MAX_STEP_TITLE_LENGTH = 100;
 
 const DATE_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -74,6 +76,7 @@ export function createTodo(input, { id, now = new Date() } = {}) {
     ...validateTitle(input?.title),
     ...validateDueDate(input?.dueDate, todayInJapan(now)),
     ...validateTags(input?.tags),
+    ...validateSteps(input?.steps),
   ];
   throwIfProblems(problems);
   const todo = {
@@ -89,6 +92,7 @@ export function createTodo(input, { id, now = new Date() } = {}) {
   if (tags.length > 0) {
     todo.tags = tags;
   }
+  addSteps(todo, normalizeSteps(input.steps ?? []));
   return todo;
 }
 
@@ -98,6 +102,7 @@ export function completeTodo(todo) {
   if (Array.isArray(todo?.tags)) {
     done.tags = [...todo.tags];
   }
+  copyStepsInto(done, todo);
   return done;
 }
 
@@ -173,7 +178,88 @@ export function setTodoTags(todo, tags) {
   if (normalized.length > 0) {
     rest.tags = normalized;
   }
+  copyStepsInto(rest, todo);
   return rest;
+}
+
+// ---- 手順 ----
+
+const STEPS_TYPE_PROBLEM = "手順は題と済んだかを持つ物の並びで渡してください";
+
+function isPlainObject(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/** 手順の並びを確かめる。問題があれば日本語の文の並びを返す（なければ空） */
+export function validateSteps(steps) {
+  if (steps === undefined || steps === null) {
+    return [];
+  }
+  if (
+    !Array.isArray(steps) ||
+    steps.some((step) => !isPlainObject(step) || typeof step.title !== "string")
+  ) {
+    return [STEPS_TYPE_PROBLEM];
+  }
+  const problems = [];
+  if (steps.length > MAX_STEPS) {
+    problems.push(`手順は${MAX_STEPS}個までです`);
+  }
+  if (steps.some((step) => step.title.trim() === "")) {
+    problems.push("題が空の手順があります");
+  }
+  if (steps.some((step) => step.title.trim().length > MAX_STEP_TITLE_LENGTH)) {
+    problems.push(`手順の題は${MAX_STEP_TITLE_LENGTH}文字までです`);
+  }
+  if (steps.some((step) => step.done !== undefined && typeof step.done !== "boolean")) {
+    problems.push("手順の済んだかは真偽で渡してください");
+  }
+  return problems;
+}
+
+/** 確かめを通った手順の並びを、{ title, done } だけの新しい物にする */
+export function normalizeSteps(steps) {
+  return steps.map((step) => ({ title: step.title.trim(), done: step.done === true }));
+}
+
+/** 手順が1つ以上のときだけ steps の欄を付ける */
+function addSteps(todo, steps) {
+  if (steps.length > 0) {
+    todo.steps = steps;
+  }
+}
+
+/** from の steps が並びなら、並びと中の物を新しく作って target に写す */
+function copyStepsInto(target, from) {
+  if (Array.isArray(from?.steps)) {
+    target.steps = from.steps.map((step) => (isPlainObject(step) ? { ...step } : step));
+  }
+}
+
+/** 手順を全部入れ替えた写しを返す（元は変えない） */
+export function setTodoSteps(todo, steps) {
+  if (steps === undefined || steps === null) {
+    throwIfProblems([STEPS_TYPE_PROBLEM]);
+  }
+  throwIfProblems(validateSteps(steps));
+  const { steps: _old, ...rest } = todo;
+  if (Array.isArray(rest.tags)) {
+    rest.tags = [...rest.tags];
+  }
+  addSteps(rest, normalizeSteps(steps));
+  return rest;
+}
+
+/** 手順の進み具合を返す */
+export function stepProgress(todo) {
+  const steps = Array.isArray(todo?.steps) ? todo.steps : [];
+  return { done: steps.filter((step) => step?.done === true).length, total: steps.length };
+}
+
+/** 済んでいない手順が1つ以上あれば true */
+export function hasRemainingSteps(todo) {
+  const steps = Array.isArray(todo?.steps) ? todo.steps : [];
+  return steps.some((step) => step?.done !== true);
 }
 
 /** 素の絞り込みの条件を読む。{ filter, problems } を返す */
