@@ -86,6 +86,25 @@ test("createTodo のタグ", () => {
   );
 });
 
+test("createTodo は理由を題 → 期限 → タグの順に並べ、tags の欄を dueDate の後に置く", () => {
+  const now = new Date("2026-11-05T03:00:00Z");
+  assert.throws(
+    () => createTodo({ title: " ", dueDate: "2026/11/05", tags: [""] }, { id: 1, now }),
+    (e) => {
+      assert.deepEqual(e.problems, [
+        "題が空です",
+        "期限は YYYY-MM-DD の形で書いてください",
+        "タグが空です",
+      ]);
+      return true;
+    },
+  );
+  const todo = createTodo({ title: "a", dueDate: "2026-11-06", tags: ["X"] }, { id: 1, now });
+  assert.deepEqual(Object.keys(todo), ["id", "title", "done", "createdAt", "dueDate", "tags"]);
+  assert.deepEqual(setTodoTags(todo, ["y"]).dueDate, "2026-11-06");
+  assert.deepEqual(completeTodo(todo).dueDate, "2026-11-06");
+});
+
 test("setTodoTags", () => {
   const todo = { id: 1, title: "t", done: false, tags: ["a"] };
   const input = ["B", "b", "c"];
