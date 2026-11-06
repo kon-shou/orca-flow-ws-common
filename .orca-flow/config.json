@@ -79,14 +79,5 @@
   },
   "integratorName": "統括役",
   "taskEnd": "pr",
-  "prReady": "after-ci",
-  "outbound": {
-    "allow": [
-      "push",
-      "pr-create",
-      "pr-ready",
-      "reply",
-      "rerequest"
-    ]
-  }
+  "prReady": "after-ci"
 }
