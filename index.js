@@ -236,6 +236,7 @@ export function validateDescription(description) {
   if (typeof description !== "string") {
     return ["説明は文字で書いてください"];
   }
+  // 題の確かめ（validateTitle）にそろえ、前後の空白を除いた長さで数える
   if (description.trim().length > MAX_DESCRIPTION_LENGTH) {
     return [`説明は${MAX_DESCRIPTION_LENGTH}文字までです`];
   }
