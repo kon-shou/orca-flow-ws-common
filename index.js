@@ -3,6 +3,7 @@
 export const MAX_TITLE_LENGTH = 100;
 export const MAX_TAGS = 5;
 export const MAX_TAG_LENGTH = 20;
+export const MAX_DESCRIPTION_LENGTH = 200;
 
 const DATE_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -225,4 +226,19 @@ export function matchesFilter(todo, filter) {
     return false;
   }
   return true;
+}
+
+/** 説明を確かめる。問題があれば日本語の文の並びを返す（なければ空。理由は多くて1つ） */
+export function validateDescription(description) {
+  if (description === undefined || description === null || description === "") {
+    return [];
+  }
+  if (typeof description !== "string") {
+    return ["説明は文字で書いてください"];
+  }
+  // 題の確かめ（validateTitle）にそろえ、前後の空白を除いた長さで数える
+  if (description.trim().length > MAX_DESCRIPTION_LENGTH) {
+    return [`説明は${MAX_DESCRIPTION_LENGTH}文字までです`];
+  }
+  return [];
 }
