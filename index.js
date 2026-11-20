@@ -226,3 +226,13 @@ export function matchesFilter(todo, filter) {
   }
   return true;
 }
+
+// ---- 期限の延ばし ----
+
+/** 期限を days 日延ばす。期限がなければ今日から数える */
+export function postponeDueDate(todo, days, today) {
+  const base = todo.dueDate ? new Date(todo.dueDate) : new Date(today);
+  base.setDate(base.getDate() + days);
+  todo.dueDate = base.toISOString().slice(0, 10);
+  return todo;
+}
