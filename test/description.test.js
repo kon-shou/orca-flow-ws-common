@@ -14,6 +14,11 @@ test("空文字は空の並び", () => {
   assert.deepEqual(validateDescription(""), []);
 });
 
+test("空白だけは空の並び", () => {
+  assert.deepEqual(validateDescription("   "), []);
+  assert.deepEqual(validateDescription(" 　\n\t"), []);
+});
+
 test("文字列でなければ理由を1つ", () => {
   for (const value of [5, {}, ["a"]]) {
     assert.deepEqual(validateDescription(value), [TYPE]);

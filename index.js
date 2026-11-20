@@ -3,6 +3,7 @@
 export const MAX_TITLE_LENGTH = 100;
 export const MAX_TAGS = 5;
 export const MAX_TAG_LENGTH = 20;
+export const MAX_DESCRIPTION_LENGTH = 200;
 
 const DATE_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -226,8 +227,6 @@ export function matchesFilter(todo, filter) {
   }
   return true;
 }
-
-export const MAX_DESCRIPTION_LENGTH = 200;
 
 /** 説明を確かめる。問題があれば日本語の文の並びを返す（なければ空。理由は多くて1つ） */
 export function validateDescription(description) {
